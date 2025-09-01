@@ -33,10 +33,14 @@ def is_palindrome_couplet(s: str) -> bool:
     i, j = 0, len(s) - 1
 
     # TODO：补全循环条件与比较逻辑：当左指针尚未越过右指针
-
+    while i < j:
+        if s[i] != s[j]:
+            return False
+        i += 1
+        j -= 1
 
     # TODO：循环结束仍未返回，说明全都相等 → 返回 True
-    pass  # 完成上述 TODO 后删除此行
+    return True
 
 
 def main():
@@ -48,7 +52,10 @@ def main():
 
     # ===== 调用函数并输出结果（挖空）=====
     # TODO：调用 is_palindrome_couplet，并根据结果打印提示 "是回文联" or "不是回文联"
-    pass  # 完成上述 TODO 后删除此行
+    if is_palindrome_couplet(s):
+        print("是回文联")
+    else:
+        print("不是回文联")
 
 
 if __name__ == "__main__":

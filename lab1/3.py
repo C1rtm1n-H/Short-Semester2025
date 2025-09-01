@@ -44,8 +44,9 @@ def load_data(filename: str) -> List[Dict[str, Any]]:
     """读取 JSON 文件并返回数据列表。"""
     # ===== 步骤 1：读取文件并 json.load（已留指引）=====
     # TODO：完成读取与解析
-    
-    pass  # 完成后删除
+    with open(filename, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    return data
 
 
 def summarize(data: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -55,26 +56,35 @@ def summarize(data: List[Dict[str, Any]]) -> Dict[str, Any]:
     # ===== 步骤 2：提取金额并计算 total / avg（挖空）=====
     # 提示：用列表推导提取 amount；注意空列表时 avg 设为 0.0
     # TODO：
+    amounts = [tx["amount"] for tx in data]
+    total_amount = sum(amounts)
+    avg_amount = round(total_amount / count, 2) if count > 0 else 0.0
 
     # ===== 步骤 3：找到金额最大的交易（挖空）=====
     # TODO：使用 max(data, key=...)；空数据时返回 None
+    max_transaction = max(data, key=lambda x: x["amount"], default=None)
 
     # ===== 步骤 4：按类别计数（挖空）=====
     # TODO：从每个 tx 中取出 category，使用 Counter 统计后转为普通 dict
+    by_category = Counter(tx["category"] for tx in data).most_common()
 
     # TODO：组合为报告字典并返回
-    # report = {
-    #     ...
-    # }
-    # return report
-    pass  # 完成后删除
+    report = {
+        "count": count,
+        "total_amount": total_amount,
+        "avg_amount": avg_amount,
+        "max_transaction": max_transaction,
+        "by_category": dict(by_category)
+    }
+    return report
 
 
 def save_report(report: Dict[str, Any], out_filename: str = "report.json") -> None:
     """将汇总结果写入 JSON 文件。"""
     # ===== 步骤 5：写文件（挖空）=====
     # TODO：使用 json.dump 保存，确保使用 UTF-8，缩进 2，ensure_ascii=False
-    pass  # 完成后删除
+    with open(out_filename, "w", encoding="utf-8") as f:
+        json.dump(report, f, ensure_ascii=False, indent=2)
 
 
 def main():

@@ -14,11 +14,13 @@ def fib(k: int) -> int:
     # ===== 基本情形（挖空）=====
     # 当 k 为 0 或 1 时，直接返回 k 本身
     # TODO：补全基本情形
+    if k == 0 or k == 1:
+        return k
 
     # ===== 递归情形（挖空）=====
     # fib(k) = fib(k-1) + fib(k-2)
     # TODO：补全递归式
-    pass  # 完成上述 TODO 后删除此行
+    return fib(k - 1) + fib(k - 2)
 
 
 def main():
@@ -32,13 +34,17 @@ def main():
         return
 
     # TODO：检查 n 是否为正整数（n >= 1），否则打印 "输入无效：n 必须 >= 1。" 并返回
+    if n < 1:
+        print("输入无效：n 必须 >= 1。")
+        return
 
     # ===== 计算与输出（挖空）=====
     # 将“第 n 项（从 1 开始）”转换为 0 起始索引：k = n - 1
+    k = n - 1
     # TODO：调用 fib(k) 并打印结果
-    
+    print(f"第 {n} 项的值为：{fib(k)}")
+
     # print(f"第 {n} 项的值为：{...}")
-    pass  # 完成上述 TODO 后删除此行
 
 
 if __name__ == "__main__":

@@ -17,7 +17,7 @@ def main():
 
     # ===== 步骤 1：生成目标数字（已写好）=====
     # TODO：使用random包随机生成一个1-100之间的整数
-    # target = ...
+    target = random.randint(1,100)
     attempts = 0 # 创建统计猜测次数的变量
 
     # ===== 步骤 2：循环交互（while True）=====
@@ -45,6 +45,7 @@ def main():
         # ===== 步骤 4：计数（挖空）=====
         # 进行一次“有效猜测”（通过了转换与范围检查）后，attempts 自增 1
         # TODO：完成 attempts 的自增
+        attempts += 1
 
         # ===== 步骤 5：比较并提示 =====
         # 已写好示例分支：比目标大
@@ -55,13 +56,13 @@ def main():
 
         # TODO：补全另外两个分支
         # 1) 若 guess < target，提示 "小了"
-        # elif guess < target:
-        #     print("小了")
+        elif guess < target:
+            print("小了")
         #
         # 2) 若 guess == target，打印 "恭喜！用时X次"（X 用 attempts 替换），并 break
-        # else:
-        #     print(f"恭喜！用时{attempts}次")
-        #     break
+        else:
+            print(f"恭喜！用时{attempts}次")
+            break
 
 
 if __name__ == "__main__":

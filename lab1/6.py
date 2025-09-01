@@ -30,11 +30,12 @@ def compute_score() -> int:
         elif a == 1:
             # 非中心：加 1 分，并重置中心加分为 2
             # TODO：补全加分与重置逻辑
-            pass  # 完成上面的 TODO 后删除此行
+            total += 1
+            center_bonus = 2
         elif a == 2:
             # 中心：加“中心加分”；若再次中心，应让中心加分在此基础上 +2
-            # TODO：补全加分与“连续中心时 +2 递增”的逻辑
-            pass  # 完成上面的 TODO 后删除此行
+            total += center_bonus
+            center_bonus += 2
         else:
             print("输入超出范围，请输入 0/1/2。")
             continue
@@ -46,7 +47,7 @@ def main():
     print("简化跳一跳：逐次输入 1/2，输入 0 结束并输出总分。")
     score = compute_score()
     # TODO：打印总分
-    pass  # 完成上面的 TODO 后删除此行
+    print(f"总分为：{score}")
 
 
 if __name__ == "__main__":
