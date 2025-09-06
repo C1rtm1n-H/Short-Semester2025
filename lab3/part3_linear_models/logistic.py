@@ -14,6 +14,11 @@ def logistic(X, y):
     # YOUR CODE HERE
     # begin answer
     #TODO
+    X_bias = np.vstack((np.ones((1, N)), X))
+    w = np.linalg.inv(X_bias @ X_bias.T) @ X_bias @ y.T
     # end answer
     
     return w
+
+def sigmoid(y):
+    return 1 / (1 + np.exp(-y))

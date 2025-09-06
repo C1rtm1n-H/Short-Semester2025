@@ -13,6 +13,8 @@ def linear_regression(X, y):
     w = np.zeros((P + 1, 1))
     # YOUR CODE HERE
     # begin answer
+    X_bias = np.vstack((np.ones((1, N)), X))
+    w = np.linalg.pinv(X_bias @ X_bias.T) @ X_bias @ y.T
     #TODO
     # begin answer
     # end answer
