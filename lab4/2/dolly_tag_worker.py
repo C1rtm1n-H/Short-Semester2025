@@ -89,6 +89,9 @@ def _make_client():
       return client
     """
     # === 在这里完成客户端初始化 ===
+    API_KEY = os.getenv("DASHSCOPE_API_KEY")
+    client = OpenAI(api_key=API_KEY, base_url="https://dashscope.aliyuncs.com/compatible-mode/v1")
+    return client
     raise NotImplementedError("请在 _make_client 中初始化并返回客户端")
 
 def _classify_one(client, model, content, temperature=0.0, max_retries=4):
@@ -116,6 +119,43 @@ def _classify_one(client, model, content, temperature=0.0, max_retries=4):
       - 异常最终兜底：返回 ("general_qa", f"model_error: {e}")
     """
     # === 在这里完成单条分类的实现 ===
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": USER_TMPL.format(content=content)}
+    ]
+    for attempt in range(max_retries):
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=temperature
+            )
+            resp_text = response.choices[0].message.content
+            resp_json = _json_fix(resp_text)
+            tag = resp_json.get("tag", "").replace("-", "_").lower()
+            reason = resp_json.get("reason", "").strip()
+            if tag not in ALLOWED_TAGS:
+                # 尝试依据 reason 关键词落到最接近类
+                reason_lower = reason.lower()
+                if "open" in reason_lower or "百科" in reason_lower or "知识" in reason_lower:
+                    tag = "open_qa"
+                elif "close" in reason_lower or "封闭" in reason_lower or "单一答案" in reason_lower:
+                    tag = "closeqa"
+                elif "信息抽取" in reason_lower or "实体" in reason_lower or "字段" in reason_lower:
+                    tag = "information_extraction"
+                elif "分类" in reason_lower or "类别" in reason_lower or "情感" in reason_lower:
+                    tag = "classification"
+                elif "创意" in reason_lower or "写作" in reason_lower or "故事" in reason_lower:
+                    tag = "creative_writing"
+                elif "点子" in reason_lower or "构思" in reason_lower or "建议" in reason_lower:
+                    tag = "brainstorming"
+                else:
+                    tag = "general_qa"
+            return tag, reason
+        except Exception as e:
+            wait_time = 1.5 * (2 ** attempt)
+            time.sleep(wait_time)
+    return "general_qa", f"model_error: {e}"
     raise NotImplementedError("请在 _classify_one 中完成模型调用与解析")
 
 def _load_jsonl(path, limit=None):
@@ -159,6 +199,23 @@ def tag_records(records, model="qwen-plus", show_progress=True):
       - 返回 rows
     """
     # === 在这里实现单线程遍历与调用 ===
+    client = _make_client()
+    rows = []
+    iterator = tqdm(records) if show_progress else records
+    for r in iterator:
+        instruction = r.get("instruction", "")
+        context = r.get("context", "")
+        content = instruction if context == "" else f"{instruction}\n\n{context}"
+        tag, reason = _classify_one(client, model, content)
+        rows.append({
+            "id": r.get("id"),
+            "instruction": instruction,
+            "context": context,
+            "dolly_category": r.get("dolly_category", ""),
+            "tag": tag,
+            "tag_reason": reason
+        })
+    return rows
     raise NotImplementedError("请在 tag_records 中实现遍历与调用")
 
 def _write_outputs(rows, out_jsonl, out_csv):
@@ -168,6 +225,12 @@ def _write_outputs(rows, out_jsonl, out_csv):
       - 写 CSV：pd.DataFrame(rows).to_csv(out_csv, index=False)
     """
     # === 在这里写出 JSONL 与 CSV ===
+    with open(out_jsonl, "w", encoding="utf-8") as f_jsonl:
+        for row in rows:
+            f_jsonl.write(json.dumps(row, ensure_ascii=False) + "\n")
+    df = pd.DataFrame(rows)
+    df.to_csv(out_csv, index=False)
+    return
     raise NotImplementedError("请在 _write_outputs 中写出文件")
 
 def main():
@@ -188,13 +251,14 @@ def main():
     # 单线程执行（调用你在上面完成的 tag_records）
     # TODO：rows = tag_records(records, model=args.model, show_progress=True)
     # === 在这里调用单线程函数 ===
-    raise NotImplementedError("请在 main 中调用 tag_records 并接收结果 rows")
+    rows = tag_records(records, model=args.model, show_progress=True)
+    #raise NotImplementedError("请在 main 中调用 tag_records 并接收结果 rows")
 
     # TODO：落盘与统计
-    # _write_outputs(rows, args.out_jsonl, args.out_csv)
-    # dist = pd.Series([r["tag"] for r in rows]).value_counts().to_dict()
-    # print(f"✅ 已写入 {args.out_jsonl} 和 {args.out_csv}")
-    # print("标签分布：", dist)
+    _write_outputs(rows, args.out_jsonl, args.out_csv)
+    dist = pd.Series([r["tag"] for r in rows]).value_counts().to_dict()
+    print(f"✅ 已写入 {args.out_jsonl} 和 {args.out_csv}")
+    print("标签分布：", dist)
 
 if __name__ == "__main__":
     main()
