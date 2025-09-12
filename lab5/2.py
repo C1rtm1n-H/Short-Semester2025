@@ -16,9 +16,9 @@
 即，第一组使用卡1，第二组使用卡2，依次类推，第八组使用卡0，第九组使用卡1，依此类推
 使用CUDA_VISIBLE_DEVICES定义环境的gpu编号，命令如下
 
-CUDA_VISIBLE_DEVICES=7 python 2.py
+CUDA_VISIBLE_DEVICES=4 python 2.py
 
-其中7根据组号自行定义
+其中4根据组号自行定义
 """
 
 import os
@@ -31,7 +31,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 # ========= 配置 =========
 
 model_name_or_path = r"/data/shenzm/llama3/Meta-Llama-3.1-8B-Instruct"
-output_dir = "./xxx/chat_logs"         # 日志输出目录，xxx自命名避免覆盖小组同学
+output_dir = "./hzh/chat_logs"         # 日志输出目录，xxx自命名避免覆盖小组同学
 max_new_tokens = 256               # 每次生成的最长新token数
 temperature = 0.7
 top_p = 0.9
@@ -54,8 +54,25 @@ else:
 # 3) 模型 dtype 使用上方 torch_dtype
 # 4) GPU 环境可 device_map="auto"，CPU 环境可 model.to("cpu")
 #
-model = ...
-tokenizer = ...
+try:
+    tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, use_fast=True)
+    if cuda_ok:
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name_or_path,
+            torch_dtype=torch_dtype,
+            device_map="auto"        # 在有 GPU 时自动分配
+        )
+    else:
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name_or_path,
+            torch_dtype=torch_dtype,
+            low_cpu_mem_usage=True
+        )
+        model.to("cpu")
+
+except Exception as e:
+    print(f"[Error] 加载模型/分词器失败: {e}")
+    raise
 
 model.eval()  # 切换为推理模式
 
